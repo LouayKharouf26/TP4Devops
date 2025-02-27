@@ -23,6 +23,10 @@ test:
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
   script:
-    - mvn clean test
-  after_script:
-    - echo "Test execution completed."
+    - echo "Running tests..."
+    - mvn clean test | tee result.log | grep -E "Initial CPU usage|Final CPU usage|Memory used" > result.log  
+    - cat result.log 
+  artifacts:
+    paths:
+      - result.log 
+    expire_in: 1 week 

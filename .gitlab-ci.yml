@@ -24,7 +24,7 @@ test:
     - echo "PostgreSQL is ready!"
   script:
     - echo "Running tests..."
-    - mvn clean test | tee result.log | grep -E "Initial CPU usage|Final CPU usage|Memory used" > result.log  
+    - mvn clean test | grep -E "Initial CPU usage|Final CPU usage|Memory used" > result.log  
     - cat result.log 
   artifacts:
     paths:

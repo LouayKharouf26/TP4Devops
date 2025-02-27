@@ -33,17 +33,17 @@ public class StudentControllerTest {
         }
     }
 
-    // Volatile variable to prevent JIT optimization
+    
     private volatile boolean cpuConsumed = false;
 
     private void consumeCpu(long millisToConsume) {
         long startTime = System.nanoTime();
-        long duration = millisToConsume * 1_000_000; // Convert milliseconds to nanoseconds
+        long duration = millisToConsume * 1_000_000; 
 
-        // Busy-wait loop to consume CPU resources
+        
         while (System.nanoTime() - startTime < duration) {
-            // Introduce observable side effect to prevent JIT optimization
-            cpuConsumed = !cpuConsumed;  // Toggle value of the volatile variable
+            
+            cpuConsumed = !cpuConsumed;  
         }
 
         System.out.println("CPU consumption completed: " + millisToConsume + " ms");

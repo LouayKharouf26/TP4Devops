@@ -1,6 +1,5 @@
 package com.example.tp4;
 
-
 import com.example.tp4.entity.Student;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -12,6 +11,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.lang.management.ManagementFactory;
+import com.sun.management.OperatingSystemMXBean;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,15 +27,26 @@ public class StudentControllerTest {
     public static String asJsonString(final Object obj) {
         try {
             final ObjectMapper mapper = new ObjectMapper();
-            final String jsonContent = mapper.writeValueAsString(obj);
-            return jsonContent;
+            return mapper.writeValueAsString(obj);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private double getCpuUsage() {
+        OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        return osBean.getSystemCpuLoad() * 100; // Get CPU usage as a percentage
+    }
+
     @Test
     public void addStudentTest() throws Exception {
+        
+        System.gc();
+        long startTime = System.nanoTime();
+        long startMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        double initialCpuUsage = getCpuUsage();
+        System.out.println("Initial CPU usage: " + initialCpuUsage + "%");
+       
         Student student = Student.builder()
                 .firstname("malek12345")
                 .lastname("malek12345")
@@ -47,8 +60,18 @@ public class StudentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
                 .andReturn();
-    }
 
+        
+        double finalCpuUsage = getCpuUsage();
+        System.out.println("Final CPU usage: " + finalCpuUsage + "%");
+        long endTime = System.nanoTime();
+        long endMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long duration = endTime - startTime;
+        long memoryUsed = endMemory - startMemory;
+        double durationInSeconds = duration / 1_000_000_000.0;
+        System.out.println("Test executed in: " + durationInSeconds + " seconds");
+        System.out.println("Memory used: " + memoryUsed + " bytes");
+    }
 
     @Test
     public void getStudentsTest() throws Exception {

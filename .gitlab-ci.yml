@@ -1,0 +1,28 @@
+stages:
+  - test
+
+services:
+  - name: postgres:13
+    alias: postgres
+    command: ["postgres", "-c", "log_statement=all"]
+
+variables:
+  POSTGRES_DB: student
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: admin
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/student
+  SPRING_DATASOURCE_USERNAME: admin
+  SPRING_DATASOURCE_PASSWORD: admin
+  SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+
+test:
+  image: maven:3.8.1-jdk-11
+  before_script:
+    # Wait for PostgreSQL to be ready before running tests
+    - echo "Waiting for PostgreSQL to be ready..."
+    - until pg_isready -h postgres -p 5432 -U $POSTGRES_USER; do sleep 2; done
+    - echo "PostgreSQL is ready!"
+  script:
+    - mvn clean test
+  after_script:
+    - echo "Test execution completed."

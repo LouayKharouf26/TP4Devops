@@ -18,15 +18,23 @@ variables:
 test:
   image: maven:3.8.1-jdk-11
   before_script:
-    - apt-get update && apt-get install -y postgresql-client
+    - apt-get update && apt-get install -y postgresql-client git
     - echo "Waiting for PostgreSQL to be ready..."
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
+    - mkdir -p logs  # Ensure logs directory exists
   script:
-    - echo "Running tests..."
-    - mvn clean test | grep -E "Initial CPU usage|Final CPU usage|Memory used" > result.log  
-    - cat result.log 
+    - echo "Fetching commit history..."
+    - git fetch --all
+    - git log --pretty=format:'%h - %s' -n 10 > logs/commit_history.log  # Store last 10 commits
+    - echo "Processing each commit..."
+    - for commit in $(git rev-list --all); do
+        echo "Checking out commit $commit...";
+        git checkout $commit;
+        echo "Running tests for commit $commit..." | tee -a logs/resource_usage.log;
+        mvn clean test | tee -a logs/full_test_logs.log | grep -E "Initial CPU usage|Final CPU usage|Memory used" >> logs/resource_usage.log;
+      done
   artifacts:
     paths:
-      - result.log 
-    expire_in: 1 week 
+      - logs/
+    expire_in: 1 week

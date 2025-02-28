@@ -24,11 +24,11 @@ test:
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
   script:
-    - echo "Fetching commit history..."
+    - echo "Fetching last 5 commits..."
     - git fetch --all
-    - git log --pretty=format:'%h - %s' -n 10 > logs/commit_history.log  # Store last 10 commits
-    - echo "Processing each commit..."
-    - for commit in $(git rev-list --all); do
+    - git log --pretty=format:'%h - %s' -n 5 > logs/commit_history.log  # Store last 5 commits
+    - echo "Processing last 5 commits..."
+    - for commit in $(git rev-list --max-count=5 HEAD); do
         echo "Checking out commit $commit...";
         git checkout $commit;
         echo "Running tests for commit $commit..." | tee -a logs/resource_usage.log;

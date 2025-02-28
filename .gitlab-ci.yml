@@ -31,7 +31,7 @@ test:
     - for commit in $(git rev-list --max-count=5 HEAD); do
         echo "Checking out commit $commit...";
         git checkout $commit;
-        echo "Running tests for commit $commit..." | tee -a logs/resource_usage.log;
+        echo "Restoring exact state of tests for commit $commit...";
         mvn clean test | tee -a logs/full_test_logs.log | grep -E "Initial CPU usage|Final CPU usage|Memory used" >> logs/resource_usage.log;
       done
   artifacts:

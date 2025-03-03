@@ -28,13 +28,15 @@ test:
     - git fetch --all
     - git log --pretty=format:'%h - %s' -n 15 > logs/commit_history.log  # Store last 15 commits
     - echo "Processing last 15 commits..."
-    - for commit in $(git rev-list --max-count=15 HEAD); do
-        echo "Checking out commit $commit..." ;
-        git checkout $commit;
-        echo "Running tests for commit $commit..." | tee -a logs/resource_usage.log;
-        echo "Restoring exact state of tests for commit $commit...";
-        echo "Running tests for commit $commit..." | tee -a logs/resource_usage.log;
-        mvn clean test | tee -a logs/full_test_logs.log | grep -E "Initial CPU usage|Final CPU usage|Memory used" >> logs/resource_usage.log;
+    - |
+      for commit in $(git rev-list --max-count=15 HEAD); do
+        # Get commit message
+        commit_message=$(git log --format=%s -n 1 $commit)
+        echo "Checking out commit $commit with message: $commit_message" | tee -a logs/resource_usage.log
+        git checkout $commit
+        echo "Restoring exact state of tests for commit $commit..." | tee -a logs/resource_usage.log
+        echo "Running tests for commit $commit with message: $commit_message..." | tee -a logs/resource_usage.log
+        mvn clean test | tee -a logs/full_test_logs.log | grep -E "Initial CPU usage|Final CPU usage|Memory used" >> logs/resource_usage.log
       done
   artifacts:
     paths:

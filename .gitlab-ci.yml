@@ -19,8 +19,7 @@ test:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/maven:3.8.1-jdk-11
   before_script:
     - apt-get update && apt-get install -y postgresql-client git time
-    - echo "Logging in to Docker Hub..."
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
     - echo "Waiting for PostgreSQL to be ready..."
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"

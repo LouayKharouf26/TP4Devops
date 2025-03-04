@@ -29,13 +29,13 @@ test:
     - git log --pretty=format:'%h - %s' -n 5 > logs/commit_history.log  # Store last 5 commits
     - echo "Processing last 5 commits..."
     - |
-      for commit in $(git rev-list --max-count=5 HEAD); do
-        commit_message=$(git log --format=%s -n 1 $commit)
-        echo "Checking out commit $commit with message: $commit_message" | tee -a logs/resource_usage.log
-        git checkout $commit
-        echo "Restoring exact state of tests for commit $commit..." | tee -a logs/resource_usage.log
-        echo "Running tests for commit $commit with message: $commit_message..." | tee -a logs/resource_usage.log
-        /usr/bin/time -v mvn clean test &>> logs/resource_usage.log
+      for commit_hash in $(git log --format='%H' -n 5); do
+        commit_message=$(git log --format='%s' -n 1 $commit_hash)
+        echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
+        git checkout $commit_hash
+        echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
+        # Run the time command to measure resource usage of the tests
+        { /usr/bin/time -v mvn clean test; } 2>&1 | tee -a logs/resource_usage.log
       done
   artifacts:
     paths:

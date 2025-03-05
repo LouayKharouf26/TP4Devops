@@ -1,11 +1,6 @@
 stages:
   - test
 
-services:
-  - name: postgres:13
-    alias: postgres
-    command: ["postgres", "-c", "log_statement=all"]
-
 variables:
   POSTGRES_DB: student
   POSTGRES_USER: admin
@@ -15,7 +10,13 @@ variables:
   SPRING_DATASOURCE_PASSWORD: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
-test:
+services:
+  - name: postgres:13
+    alias: postgres
+    command: ["postgres", "-c", "log_statement=all"]
+
+test_job:
+  stage: test
   image: maven:3.8.1-jdk-11
   before_script:
     - apt-get update && apt-get install -y postgresql-client git time
@@ -24,19 +25,20 @@ test:
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
   script:
-    - echo "Fetching last 5 commits..."
+    - echo "Fetching last 5 commits without 'update ci'..."
     - git fetch --all
-    - git log --pretty=format:'%h - %s' -n 5 > logs/commit_history.log  # Store last 5 commits
+    - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
     - echo "Processing last 5 commits..."
     - |
-      for commit_hash in $(git log --format='%H' -n 5); do
-        commit_message=$(git log --format='%s' -n 1 $commit_hash)
+      while read commit_hash commit_message; do
         echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
         git checkout $commit_hash
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
-        # Run the time command to measure resource usage of the tests
-        { /usr/bin/time -v mvn clean test; } 2>&1 | tee -a logs/resource_usage.log
-      done
+        # Run tests and measure resource usage
+        mkdir -p logs/$commit_hash
+        mvn clean test | tee logs/$commit_hash/test_output.log
+        git checkout -
+      done < logs/commit_history.log
   artifacts:
     paths:
       - logs/

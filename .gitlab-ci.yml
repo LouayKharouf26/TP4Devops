@@ -38,6 +38,12 @@ test_job:
         # Run tests and measure resource usage
         mkdir -p logs/$commit_hash
         mvn clean test | tee logs/$commit_hash/test_output.log
+        # Check for the metrics in the test output log
+        if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
+          grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log
+        else
+          echo "No metrics found in commit $commit_hash" >> logs/resource_usage.log
+        fi
         git checkout $current_branch
       done < logs/commit_history.log
   artifacts:

@@ -35,9 +35,11 @@ test_job:
         echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
         git checkout $commit_hash
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
-        # Run tests and measure resource usage
+        # Run tests and measure resource usage with time command
         mkdir -p logs/$commit_hash
-        mvn clean test | tee logs/$commit_hash/test_output.log
+        /usr/bin/time -v mvn clean test | tee logs/$commit_hash/test_output.log
+        # Store the time output in a separate file
+        /usr/bin/time -v mvn clean test &> logs/$commit_hash/time_output.log
         # Check for the metrics in the test output log
         if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
           grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log

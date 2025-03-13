@@ -25,11 +25,12 @@ test_job:
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
   script:
-    - echo "Fetching last 5 commits without 'update ci'..."
+    - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
     - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
     - echo "Processing last 5 commits..."
     - |
+      current_branch=$(git rev-parse --abbrev-ref HEAD)
       while read commit_hash commit_message; do
         echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
         git checkout $commit_hash
@@ -37,7 +38,7 @@ test_job:
         # Run tests and measure resource usage
         mkdir -p logs/$commit_hash
         mvn clean test | tee logs/$commit_hash/test_output.log
-        git checkout -
+        git checkout $current_branch
       done < logs/commit_history.log
   artifacts:
     paths:

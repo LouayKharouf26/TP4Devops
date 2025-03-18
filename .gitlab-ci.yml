@@ -24,13 +24,8 @@ test_job:
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
-    - git clone https://github.com/joular/joularjx.git
-
   script:
     - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
-    - cd joularjx
-    - ./mvnw clean install -DskipTests
-    - cd ..
     - git fetch --all
     - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
     - echo "Processing last 5 commits..."
@@ -40,12 +35,11 @@ test_job:
         echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
         git checkout $commit_hash
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
-        # Run tests with JoularJX agent
+        # Run tests and measure resource usage with time command
         mkdir -p logs/$commit_hash
-        mvn clean package
-        /usr/bin/time -v java -javaagent:joularjx/target/joularjx.jar -jar target/tp4-0.0.1-SNAPSHOT.jar | tee logs/$commit_hash/test_output.log
+        /usr/bin/time -v mvn clean test | tee logs/$commit_hash/test_output.log
         # Store the time output in a separate file
-        /usr/bin/time -v java -javaagent:joularjx/target/joularjx.jar -jar target/tp4-0.0.1-SNAPSHOT.jar &> logs/$commit_hash/time_output.log
+        /usr/bin/time -v mvn clean test &> logs/$commit_hash/time_output.log
         # Check for the metrics in the test output log
         if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
           grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log

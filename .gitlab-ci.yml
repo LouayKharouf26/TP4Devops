@@ -19,16 +19,14 @@ test_job:
   stage: test
   image: maven:3.8.1-jdk-11
   before_script:
-    - apt-get update && apt-get install -y postgresql-client git time wget unzip
+    - apt-get update && apt-get install -y postgresql-client git time
     - echo "Waiting for PostgreSQL to be ready..."
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
-    # Download and install JoularJX
-    - wget https://github.com/joular/joularjx/archive/refs/heads/master.zip -O joularjx.zip
-    - unzip joularjx.zip
-    - cd joularjx-master
-    - mvn clean install
+    - git clone https://github.com/joular/joularjx.git
+    - cd joularjx
+    - sh linux-install.sh
     - cd ..
   script:
     - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
@@ -41,13 +39,20 @@ test_job:
         echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
         git checkout $commit_hash
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
-        # Run tests with JoularJX monitoring
+        # Run tests with JoularJX agent
         mkdir -p logs/$commit_hash
-        java -javaagent:joularjx-master/target/joularjx.jar -jar your-application.jar > logs/$commit_hash/joularjx_output.log
-        # Check for the metrics in the JoularJX output log
-        if grep -q 'Power Consumption' logs/$commit_hash/joularjx_output.log; then
-          grep 'Power Consumption' logs/$commit_hash/joularjx_output.log >> logs/resource_usage.log
+        /usr/bin/time -v java -javaagent:/opt/joularjx/joularjx.jar -jar target/your-application.jar | tee logs/$commit_hash/test_output.log
+        # Store the time output in a separate file
+        /usr/bin/time -v java -javaagent:/opt/joularjx/joularjx.jar -jar target/your-application.jar &> logs/$commit_hash/time_output.log
+        # Check for the metrics in the test output log
+        if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
+          grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log
         else
-          echo "No power consumption metrics found in commit $commit_hash" >> logs/resource_usage
-::contentReference[oaicite:2]{index=2}
- 
+          echo "No metrics found in commit $commit_hash" >> logs/resource_usage.log
+        fi
+        git checkout $current_branch
+      done < logs/commit_history.log
+  artifacts:
+    paths:
+      - logs/
+    expire_in: 1 week

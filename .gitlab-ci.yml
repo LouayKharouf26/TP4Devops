@@ -25,11 +25,12 @@ test_job:
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
     - git clone https://github.com/joular/joularjx.git
+
+  script:
+    - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
     - cd joularjx
     - ./mvnw clean install -DskipTests
     - cd ..
-  script:
-    - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
     - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
     - echo "Processing last 5 commits..."

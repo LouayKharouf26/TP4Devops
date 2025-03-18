@@ -41,9 +41,10 @@ test_job:
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
         # Run tests with JoularJX agent
         mkdir -p logs/$commit_hash
-        /usr/bin/time -v java -javaagent:joularjx/target/joularjx.jar -jar target/your-application.jar | tee logs/$commit_hash/test_output.log
+        mvn clean package
+        /usr/bin/time -v java -javaagent:joularjx/target/joularjx.jar -jar target/tp4-0.0.1-SNAPSHOT.jar | tee logs/$commit_hash/test_output.log
         # Store the time output in a separate file
-        /usr/bin/time -v java -javaagent:joularjx/target/joularjx.jar -jar target/your-application.jar &> logs/$commit_hash/time_output.log
+        /usr/bin/time -v java -javaagent:joularjx/target/joularjx.jar -jar target/tp4-0.0.1-SNAPSHOT.jar &> logs/$commit_hash/time_output.log
         # Check for the metrics in the test output log
         if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
           grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log

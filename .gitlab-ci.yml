@@ -12,10 +12,6 @@ build_joular:
     - cd joularjx/
     - echo "Building JoularJX agent..."
     - mvn clean install -DskipTests
-  artifacts:
-    paths:
-      - joularjx/target/joularjx.jar
-    expire_in: 1 week
 
 # Stage to build your application and run it with the JoularJX agent
 build_and_run:

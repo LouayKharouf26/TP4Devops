@@ -2,7 +2,21 @@ stages:
   - build_joular
   - build_and_run
 
-# Stage to clone and build the JoularJX agent
+variables:
+  POSTGRES_DB: student
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: admin
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/student
+  SPRING_DATASOURCE_USERNAME: admin
+  SPRING_DATASOURCE_PASSWORD: admin
+  SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+  POSTGRES_HOST_AUTH_METHOD: trust
+
+services:
+  - name: postgres:13
+    alias: postgres
+    command: ["postgres", "-c", "log_statement=all"]
+
 build_joular:
   stage: build_joular
   image: maven:3.8.1-jdk-11
@@ -13,13 +27,18 @@ build_joular:
     - echo "Building JoularJX agent..."
     - mvn clean install -DskipTests
 
-# Stage to build your application and run it with the JoularJX agent
 build_and_run:
   stage: build_and_run
   image: maven:3.8.1-jdk-11
   dependencies:
     - build_joular
   script:
+    - echo "Waiting for PostgreSQL to be ready..."
+    - until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do
+        echo "PostgreSQL is unavailable - sleeping";
+        sleep 1;
+      done
+    - echo "PostgreSQL is ready!"
     - echo "Building the application..."
     - mvn clean package
     - echo "Running the application with JoularJX agent..."

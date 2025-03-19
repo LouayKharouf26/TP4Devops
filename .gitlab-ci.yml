@@ -10,7 +10,6 @@ variables:
   SPRING_DATASOURCE_USERNAME: admin
   SPRING_DATASOURCE_PASSWORD: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-  POSTGRES_HOST_AUTH_METHOD: trust
 
 services:
   - name: postgres:13
@@ -32,13 +31,13 @@ build_and_run:
   image: maven:3.8.1-jdk-11
   dependencies:
     - build_joular
-  script:
+  before_script:
+    - apt-get update && apt-get install -y postgresql-client git time
     - echo "Waiting for PostgreSQL to be ready..."
-    - until pg_isready -h postgres -U $POSTGRES_USER -d $POSTGRES_DB; do
-        echo "PostgreSQL is unavailable - sleeping";
-        sleep 1;
-      done
+    - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
+    - mkdir -p logs  # Ensure logs directory exists
+  script:
     - echo "Building the application..."
     - mvn clean package
     - echo "Running the application with JoularJX agent..."

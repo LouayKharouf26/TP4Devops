@@ -30,7 +30,7 @@ build_and_run:
   stage: build_and_run
   image: maven:3.8.1-jdk-11
   before_script:
-    - apt-get update && apt-get install -y postgresql-client git time
+    - apt-get update && apt-get install -y postgresql-client 
     - echo "Waiting for PostgreSQL to be ready..."
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"

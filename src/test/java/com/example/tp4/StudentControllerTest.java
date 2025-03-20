@@ -40,7 +40,7 @@ public class StudentControllerTest {
     /**
      * Simulate CPU load for a given number of milliseconds.
      */
-    private void consumeCpu(long millisToConsume) {
+    /*private void consumeCpu(long millisToConsume) {
         long startTime = System.nanoTime();
         long duration = millisToConsume * 1_000_000; // Convert ms to ns
         while (System.nanoTime() - startTime < duration) {
@@ -68,7 +68,7 @@ public class StudentControllerTest {
         logger.info("Initial CPU usage: {}%", initialCpuUsage);
 
         // Simulate workload by consuming CPU (for example, 180,000 ms = 3 minutes)
-        consumeCpu(180000);
+      //  consumeCpu(180000);
 
         // Create a Student object to be added
         Student student = Student.builder()

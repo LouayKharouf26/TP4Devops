@@ -10,6 +10,17 @@ variables:
   SPRING_DATASOURCE_PASSWORD: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
+before_script:
+  - apt-get update -y
+  - apt-get install git -y
+  - apt-get install curl -y
+  - apt-get install jq -y
+
+include:
+  project: 'bl-drit/bl.drit.experiments/software.engineering/ecodesing/bl-eco-ci-energy-estimation'
+  file: '/eco-ci-gitlab.yml'
+  ref: 'develop'
+
 services:
   - name: postgres:13
     alias: postgres

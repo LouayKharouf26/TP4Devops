@@ -14,7 +14,7 @@ variables:
   SPRING_DATASOURCE_USERNAME: admin
   SPRING_DATASOURCE_PASSWORD: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-  # (Other eco‑CI–related variables are assumed to be defined in the included file)
+  # (Other eco‑CI related variables)
 
 services:
   - name: postgres:13
@@ -29,36 +29,47 @@ test_job:
     - echo "Waiting for PostgreSQL to be ready..."
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
-    - mkdir -p logs  # Ensure logs directory exists
+    - mkdir -p logs
   script:
+    # Fetch and prepare the commit list
     - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
     - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
-    - echo "Processing last 5 commits..."
+    - echo "Processing commits from logs/commit_history.log..."
+    # Write the loop into a separate shell script (loop.sh)
     - |
+      cat <<'EOF' > loop.sh
+      #!/bin/bash
       current_branch=$(git rev-parse --abbrev-ref HEAD)
       while read commit_hash commit_message; do
-        echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
+        echo "Processing commit $commit_hash: $commit_message"
         git checkout $commit_hash
-        echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
+        echo "Running tests for commit $commit_hash..."
         mkdir -p logs/$commit_hash
 
-        # Invoke eco‑CI start measurement (defined in the included eco‑CI snippet)
-        !reference [.start_measurement, script]
-
-        # Run tests (without /usr/bin/time)
+        # Eco-CI start measurement step
+        # The following line will be replaced by the content of .start_measurement script
+        echo "Invoking eco-ci start measurement"
+EOF
+    # Append the start measurement command from eco-ci using !reference outside the literal block
+    - echo '- !reference [.start_measurement, script]' >> loop.sh
+    - |
+      cat <<'EOF' >> loop.sh
+        # Run tests
         mvn clean test | tee logs/$commit_hash/test_output.log
-
-        # Set a label (used by eco‑CI) based on the commit hash
         export ECO_CI_LABEL="Measure commit $commit_hash"
-
-        # Invoke eco‑CI to get the measurement
-        !reference [.get_measurement, script]
-
-        # Invoke eco‑CI to display results
-        !reference [.display_results, script]
-
-        # Optionally, log test metrics if found in the test output
+EOF
+    # Append the get measurement command
+    - echo '- !reference [.get_measurement, script]' >> loop.sh
+    - |
+      cat <<'EOF' >> loop.sh
+        # Append display results step
+EOF
+    # Append the display results command
+    - echo '- !reference [.display_results, script]' >> loop.sh
+    - |
+      cat <<'EOF' >> loop.sh
+        # Optionally log test metrics
         if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
           grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log
         else
@@ -66,6 +77,9 @@ test_job:
         fi
         git checkout $current_branch
       done < logs/commit_history.log
+EOF
+    - chmod +x loop.sh
+    - ./loop.sh
   artifacts:
     paths:
       - logs/

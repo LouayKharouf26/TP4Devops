@@ -1,3 +1,8 @@
+include:
+  project: 'bl-drit/bl.drit.experiments/software.engineering/ecodesing/bl-eco-ci-energy-estimation'
+  file: '/eco-ci-gitlab.yml'
+  ref: 'develop'
+
 stages:
   - test
 
@@ -9,17 +14,7 @@ variables:
   SPRING_DATASOURCE_USERNAME: admin
   SPRING_DATASOURCE_PASSWORD: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-
-before_script:
-  - apt-get update -y
-  - apt-get install git -y
-  - apt-get install curl -y
-  - apt-get install jq -y
-
-include:
-  project: 'bl-drit/bl.drit.experiments/software.engineering/ecodesing/bl-eco-ci-energy-estimation'
-  file: '/eco-ci-gitlab.yml'
-  ref: 'develop'
+  # (Other eco‑CI–related variables are assumed to be defined in the included file)
 
 services:
   - name: postgres:13
@@ -47,15 +42,28 @@ test_job:
         git checkout $commit_hash
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
         mkdir -p logs/$commit_hash
-        # Start eco-ci measurement for this commit
-        - !reference [.start_measurement, script]
-        # Run tests (eco-ci will capture the energy consumption)
+
+        # Invoke eco‑CI start measurement (defined in the included eco‑CI snippet)
+        !reference [.start_measurement, script]
+
+        # Run tests (without /usr/bin/time)
         mvn clean test | tee logs/$commit_hash/test_output.log
-        export ECO_CI_LABEL="Test consumption for $commit_hash"
-        # Stop measurement and capture the output
-        - !reference [.get_measurement, script] >> logs/$commit_hash/eco-ci_output.txt
-        # Append the measurement summary to the resource usage log
-        cat logs/$commit_hash/eco-ci_output.txt >> logs/resource_usage.log
+
+        # Set a label (used by eco‑CI) based on the commit hash
+        export ECO_CI_LABEL="Measure commit $commit_hash"
+
+        # Invoke eco‑CI to get the measurement
+        !reference [.get_measurement, script]
+
+        # Invoke eco‑CI to display results
+        !reference [.display_results, script]
+
+        # Optionally, log test metrics if found in the test output
+        if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
+          grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log
+        else
+          echo "No metrics found in commit $commit_hash" >> logs/resource_usage.log
+        fi
         git checkout $current_branch
       done < logs/commit_history.log
   artifacts:

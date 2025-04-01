@@ -48,12 +48,12 @@ test_job:
         echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
         mkdir -p logs/$commit_hash
         # Start eco-ci measurement for this commit
-        !reference [.start_measurement, script]
+        - !reference [.start_measurement, script]
         # Run tests (eco-ci will capture the energy consumption)
         mvn clean test | tee logs/$commit_hash/test_output.log
         export ECO_CI_LABEL="Test consumption for $commit_hash"
         # Stop measurement and capture the output
-        !reference [.get_measurement, script] >> logs/$commit_hash/eco-ci_output.txt
+        - !reference [.get_measurement, script] >> logs/$commit_hash/eco-ci_output.txt
         # Append the measurement summary to the resource usage log
         cat logs/$commit_hash/eco-ci_output.txt >> logs/resource_usage.log
         git checkout $current_branch

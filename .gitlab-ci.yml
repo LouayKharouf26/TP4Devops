@@ -1,6 +1,5 @@
 stages:
-  - build_and_run
-  - test_app
+  - test
 
 variables:
   POSTGRES_DB: student
@@ -11,63 +10,44 @@ variables:
   SPRING_DATASOURCE_PASSWORD: admin
   SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
-before_script:
-  - apt-get update -y
-  - apt-get install git -y
-  - apt-get install curl -y
-  - apt-get install jq -y
-include:
-  project: 'bl-drit/bl.drit.experiments/software.engineering/ecodesing/bl-eco-ci-energy-estimation'
-  file: '/eco-ci-gitlab.yml' 
-  ref: 'develop'
-
 services:
   - name: postgres:13
     alias: postgres
     command: ["postgres", "-c", "log_statement=all"]
 
-build_and_run:
-  stage: build_and_run
-  image: maven:3.8.1-jdk-11
-  before_script:
-    - apt-get update -y
-    - apt-get install -y postgresql-client 
-    - apt-get install jq -y
-    - echo "Waiting for PostgreSQL to be ready..."
-    - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
-    - echo "PostgreSQL is ready!"
-
-    - mkdir -p logs  # Ensure logs directory exists
-  script:
-    - !reference [.start_measurement, script]  # Ensure this reference exists in included file
-    - echo "Building the application..."
-    - mvn clean package
-    - export ECO_CI_LABEL="Measure compile"
-    - !reference [.get_measurement, script]  # Ensure this reference exists in included file
-  artifacts:
-    paths:
-      - eco-ci-output.txt
-    reports:
-      metrics: metrics.txt
 test_job:
-  stage: test_app
+  stage: test
   image: maven:3.8.1-jdk-11
   before_script:
-    - apt-get update && apt-get install -y postgresql-client 
-    - apt-get install jq -y
+    - apt-get update && apt-get install -y postgresql-client git
     - echo "Waiting for PostgreSQL to be ready..."
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
     - mkdir -p logs  # Ensure logs directory exists
   script:
-    - !reference [.start_measurement, script]  # Ensure this reference exists in included file
-    - echo "testing the application..."
-    - mvn clean test
-    - export ECO_CI_LABEL="Measure compile"
-    - !reference [.get_measurement, script]  # Ensure this reference exists in included file
-    - !reference [.display_results, script]  # Ensure this reference exists in included file
+    - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
+    - git fetch --all
+    - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
+    - echo "Processing last 5 commits..."
+    - |
+      current_branch=$(git rev-parse --abbrev-ref HEAD)
+      while read commit_hash commit_message; do
+        echo "Processing commit $commit_hash: $commit_message" | tee -a logs/resource_usage.log
+        git checkout $commit_hash
+        echo "Running tests for commit $commit_hash..." | tee -a logs/resource_usage.log
+        mkdir -p logs/$commit_hash
+        # Start eco-ci measurement for this commit
+        !reference [.start_measurement, script]
+        # Run tests (eco-ci will capture the energy consumption)
+        mvn clean test | tee logs/$commit_hash/test_output.log
+        export ECO_CI_LABEL="Test consumption for $commit_hash"
+        # Stop measurement and capture the output
+        !reference [.get_measurement, script] >> logs/$commit_hash/eco-ci_output.txt
+        # Append the measurement summary to the resource usage log
+        cat logs/$commit_hash/eco-ci_output.txt >> logs/resource_usage.log
+        git checkout $current_branch
+      done < logs/commit_history.log
   artifacts:
     paths:
-      - eco-ci-output.txt
-    reports:
-      metrics: metrics.txt
+      - logs/
+    expire_in: 1 week

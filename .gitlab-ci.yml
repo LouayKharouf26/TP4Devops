@@ -32,43 +32,39 @@ test_job:
     - echo "PostgreSQL is ready!"
     - mkdir -p logs
   script:
+    # Fetch commit history
     - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
     - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
     - echo "Processing commits from logs/commit_history.log..."
-    
+    # Start the loop: this folded block starts the while loop
     - >
       current_branch=$(git rev-parse --abbrev-ref HEAD);
       while read commit_hash commit_message; do
         echo "Processing commit $commit_hash: $commit_message";
         git checkout $commit_hash;
-        
-        mkdir -p logs/$commit_hash;
-        
         echo "Running tests for commit $commit_hash...";
-    
-        - !reference [.start_measurement, script]
-    
-        - mvn clean test | tee logs/$commit_hash/test_output.log;
-    
-        - export ECO_CI_LABEL="Measure commit $commit_hash";
-    
-        - !reference [.get_measurement, script]
-    
-        - cp eco-ci-output.txt logs/$commit_hash/eco-ci-output_$commit_hash.txt;
-    
-        - !reference [.display_results, script]
-    
-        - >
-          if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
-            grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log;
-          else
-            echo "No metrics found in commit $commit_hash" >> logs/resource_usage.log;
-          fi;
-        
-        git checkout $current_branch;
+        mkdir -p logs/$commit_hash;
+    # Insert eco‑CI start measurement (resolved via !reference)
+    - !reference [.start_measurement, script]
+    # Continue with testing and label setting
+    - >
+      mvn clean test | tee logs/$commit_hash/test_output.log;
+      export ECO_CI_LABEL="Measure commit $commit_hash";
+    # Insert eco‑CI get measurement step
+    - !reference [.get_measurement, script]
+    - cp eco-ci-output.txt logs/$commit_hash/eco-ci-output_$commit_hash.txt;
+    # Insert eco‑CI display results step
+    - !reference [.display_results, script]
+    # Finish the loop: check for metrics, restore branch, and close the loop
+    - >
+      if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
+        grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log;
+      else
+        echo "No metrics found in commit $commit_hash" >> logs/resource_usage.log;
+      fi;
+      git checkout $current_branch;
       done < logs/commit_history.log
-  
   artifacts:
     paths:
       - logs/

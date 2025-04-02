@@ -35,7 +35,7 @@ test_job:
     # Fetch commit history
     - echo "Fetching last 5 commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
-    - git log --pretty=format:'%H %s' | grep -vi "gitlab" | head -n 5 > logs/commit_history.log
+    - git log --pretty=format:'%H %s' | grep -v "Update .gitlab-ci.yml file" | head -n 5 > logs/commit_history.log
     - echo "Processing commits from logs/commit_history.log..."
     # Start the loop: this folded block starts the while loop
     - >

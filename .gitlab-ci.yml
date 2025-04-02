@@ -53,9 +53,11 @@ test_job:
       export ECO_CI_LABEL="Measure commit $commit_hash";
     # Insert eco‑CI get measurement step
     - !reference [.get_measurement, script]
-    - cp eco-ci-output.txt logs/$commit_hash/eco-ci-output_$commit_hash.txt;
+
     # Insert eco‑CI display results step
-    - !reference [.display_results, script]
+    - bash -c '!reference [.display_results, script] | tee logs/$commit_hash/display_results_$commit_hash.txt'
+
+
     # Finish the loop: check for metrics, restore branch, and close the loop
     - >
       if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then

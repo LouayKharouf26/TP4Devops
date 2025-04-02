@@ -49,7 +49,7 @@ test_job:
     - !reference [.start_measurement, script]
     # Continue with testing and label setting
     - >
-      mvn clean test | tee logs/$commit_hash/test_output.log;
+      mvn clean test | tee logs/$commit_message/test_output.log;
       export ECO_CI_LABEL="Measure commit $commit_hash";
     # Insert eco‑CI get measurement step
     - !reference [.get_measurement, script]
@@ -57,15 +57,15 @@ test_job:
     # Insert eco‑CI display results step
     - exec 3>&1 4>&2
     # Redirect stdout/stderr to tee for capturing output in a file
-    - exec > >(tee logs/$commit_hash/display_results_$commit_hash.txt) 2>&1
+    - exec > >(tee logs/$commit_message/display_results_$commit_message.txt) 2>&1
     - !reference [.display_results, script]
     # Restore stdout/stderr after the referenced commands run
     - exec 1>&3 2>&4
 
     # Finish the loop: check for metrics, restore branch, and close the loop
     - >
-      if grep -q 'Test Metrics' logs/$commit_hash/test_output.log; then
-        grep 'Test Metrics' logs/$commit_hash/test_output.log >> logs/resource_usage.log;
+      if grep -q 'Test Metrics' logs/$commit_message/test_output.log; then
+        grep 'Test Metrics' logs/$commit_message/test_output.log >> logs/resource_usage.log;
       else
         echo "No metrics found in commit $commit_hash" >> logs/resource_usage.log;
       fi;

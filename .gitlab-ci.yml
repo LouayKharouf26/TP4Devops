@@ -55,7 +55,11 @@ test_job:
     - !reference [.get_measurement, script]
 
     # Insert eco‑CI display results step
-    - bash -c '!reference [.display_results, script] | tee logs/$commit_hash/display_results_$commit_hash.txt'
+    - |
+        (
+         !reference [.display_results, script]
+        ) | tee logs/$commit_hash/eco_ci_results_$commit_hash.txt
+
 
 
     # Finish the loop: check for metrics, restore branch, and close the loop

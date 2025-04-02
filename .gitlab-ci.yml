@@ -55,14 +55,12 @@ test_job:
     - !reference [.get_measurement, script]
 
     # Insert eco‑CI display results step
-    - |
-
-       output="$(
-                !reference [.display_results, script]
-                 )"
-        echo "$output" | tee logs/$commit_hash/eco_ci_$commit_hash.txt
-
-
+    - exec 3>&1 4>&2
+    # Redirect stdout/stderr to tee for capturing output in a file
+    - exec > >(tee logs/$commit_hash/display_results_$commit_hash.txt) 2>&1
+    - !reference [.display_results, script]
+    # Restore stdout/stderr after the referenced commands run
+    - exec 1>&3 2>&4
 
     # Finish the loop: check for metrics, restore branch, and close the loop
     - >

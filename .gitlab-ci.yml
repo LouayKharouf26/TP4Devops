@@ -56,9 +56,11 @@ test_job:
 
     # Insert eco‑CI display results step
     - |
-        (
-         !reference [.display_results, script]
-        ) | tee logs/$commit_hash/eco_ci_results_$commit_hash.txt
+
+       output="$(
+                !reference [.display_results, script]
+                 )"
+        echo "$output" | tee logs/$commit_hash/eco_ci_$commit_hash.txt
 
 
 

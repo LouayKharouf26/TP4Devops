@@ -30,6 +30,7 @@ test_job:
     - until PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1;" &>/dev/null; do sleep 2; done
     - echo "PostgreSQL is ready!"
     - mkdir -p logs
+    - touch metrics.txt
   script:
     # Fetch commit history: get only 2 commits that don't contain the excluded message.
     - echo "Fetching commits excluding 'Update .gitlab-ci.yml file'..."
@@ -66,7 +67,7 @@ test_job:
       git checkout $current_branch;
       done < logs/commit_history.log
     # Generate metrics.txt artifact from the collected resource usage log
-    - cp logs/resource_usage.log metrics.txt || touch metrics.txt
+    - cp logs/resource_usage.log metrics.txt metrics.txt
   artifacts:
     paths:
       - logs/

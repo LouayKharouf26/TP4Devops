@@ -32,14 +32,15 @@ test_job:
     - mkdir -p logs
     - touch metrics.txt
   script:
-    # Fetch commit history: get only 2 commits that don't contain the excluded message.
     - echo "Fetching commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
+    - set +o pipefail
     - git log --pretty=format:'%H %s' | grep -Ev "Update (\.gitlab-ci\.yml file|file \.gitlab-ci\.yml)" | head -n 2 > logs/commit_history.log
-    - echo "Listing logs directory to debug file locations:"
+    - echo "Logs directory contents:"
     - ls -l logs/
     - echo "Contents of logs/commit_history.log:"
     - cat logs/commit_history.log
+
   artifacts:
     paths:
       - logs/

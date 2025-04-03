@@ -37,7 +37,8 @@ test_job:
     - grep -v "Update .gitlab-ci.yml file" logs/git_log_raw.txt | grep -v "Update file .gitlab-ci.yml" | head -n 5 > logs/commit_history.log || true
 
     # Ensure at least one commit exists
-    - if [ ! -s logs/commit_history.log ]; then 
+    - >
+      if [ ! -s logs/commit_history.log ]; then 
         git log --pretty=format:'%H %s' -n 1 > logs/commit_history.log;
         echo "Warning: No valid commits found. Using latest commit instead.";
       fi

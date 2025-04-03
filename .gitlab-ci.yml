@@ -32,6 +32,7 @@ test_job:
     - echo "PostgreSQL is ready!"
     - mkdir -p logs
     - git fetch --unshallow || echo "Repository already unshallowed"
+    - touch metrics.txt
   script:
     # Fetch commit history
     - echo "Fetching last 2 commits excluding 'Update .gitlab-ci.yml file'..."

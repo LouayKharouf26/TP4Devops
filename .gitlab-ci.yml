@@ -36,11 +36,11 @@ test_job:
     - echo "Fetching commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
     - git log --pretty=format:'%H %s' | grep -Ev "Update (\.gitlab-ci\.yml file|file \.gitlab-ci\.yml)" | head -n 2 > logs/commit_history.log
-    - cat /logs/commit_history.log
+    - echo "Listing logs directory to debug file locations:"
+    - ls -l logs/
+    - echo "Contents of logs/commit_history.log:"
+    - cat logs/commit_history.log
   artifacts:
     paths:
       - logs/
-      #- eco-ci-output.txt
-    #reports:
-    #  metrics: metrics.txt
     expire_in: 1 week

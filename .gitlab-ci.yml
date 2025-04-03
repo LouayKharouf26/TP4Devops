@@ -75,6 +75,6 @@ test_job:
       - logs/
       - logs/metrics.txt
       - eco-ci-output.txt
-    reports:
-      metrics: logs/metrics.txt
+    #reports:
+      #metrics: logs/metrics.txt
     expire_in: 1 week

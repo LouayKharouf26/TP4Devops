@@ -37,7 +37,12 @@ test_job:
     # Fetch commit history
     - echo "Fetching last 2 commits excluding 'Update .gitlab-ci.yml file'..."
     - git fetch --all
+    - set +o pipefail
     - git log --pretty=format:'%H %s' | grep -Ev "Update (\.gitlab-ci\.yml file|file \.gitlab-ci\.yml)" | head -n 2 > logs/commit_history.log
+    - echo "Logs directory contents:"
+    - ls -l logs/
+    - echo "Contents of logs/commit_history.log:"
+    - cat logs/commit_history.log
     - echo "Processing commits from logs/commit_history.log..."
     # Start the loop: this folded block starts the while loop
     - >

@@ -1,7 +1,6 @@
 package com.example.tp4;
 
-
-import com.example.tp4.entity.Student;
+import com.example.tp4.entity.Course;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class StudentControllerTest {
+public class CourseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,28 +32,35 @@ public class StudentControllerTest {
     }
 
     @Test
-    public void addStudentTest() throws Exception {
-        Student student = Student.builder()
-                .firstname("malek12345")
-                .lastname("malek12345")
-                .email("zaag.malek1@gmail.com")
+    public void addCourseTest() throws Exception {
+        Course course = Course.builder()
+                .name("Mathematics")
+                .instructor("Dr. John")
                 .build();
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/addStudent")
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/courses/addCourse")
                         .contentType("application/json")
-                        .content(asJsonString(student))
+                        .content(asJsonString(course))
                         .accept("application/json"))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
                 .andReturn();
     }
 
-
     @Test
-    public void getStudentsTest() throws Exception {
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/students")
+    public void getCoursesTest() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/courses")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andReturn();
+    }
+
+    @Test
+    public void helloWorldTest() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/courses/")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("hello world !"))
                 .andReturn();
     }
 }

@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+# .gitignore
+.history/
+diff_results/
+diff_*.json
+*.csv
+srcpatch.diff

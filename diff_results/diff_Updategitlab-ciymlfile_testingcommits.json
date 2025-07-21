@@ -1,9 +1,0 @@
-{
-  "commit_messages": [
-    "Update .gitlab-ci.yml file",
-    "testingcommits"
-  ],
-  "changed_files": [
-    "src/main/java/com/example/tp4/service/StudentService.java"
-  ]
-}

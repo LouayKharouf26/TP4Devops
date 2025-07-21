@@ -1,9 +1,0 @@
-{
-  "commit_messages": [
-    "Update .gitlab-ci.yml file",
-    "Update file .gitlab-ci.yml"
-  ],
-  "changed_files": [
-    ".gitlab-ci.yml"
-  ]
-}

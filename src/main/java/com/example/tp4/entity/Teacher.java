@@ -5,27 +5,30 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "course")
+@Table(name = "teacher")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Course {
+public class Teacher {
     @Id
     @GeneratedValue
     private Long id;
 
     private String name;
-    private String instructor;
+    private String subject;
 
-    @ManyToMany(mappedBy = "courses")
-    @JsonBackReference
-    private List<Teacher> teachers;
+    @ManyToMany
+    @JoinTable(
+        name = "teacher_course",
+        joinColumns = @JoinColumn(name = "teacher_id"),
+        inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    private List<Course> courses;
 }

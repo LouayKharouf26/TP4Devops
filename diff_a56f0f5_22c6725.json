@@ -1,9 +1,0 @@
-{
-  "commit_messages": [
-    "baselineecoci",
-    "energyconsumed"
-  ],
-  "changed_files": [
-    "src/main/java/com/example/tp4/service/StudentService.java"
-  ]
-}

@@ -1,9 +1,0 @@
-{
-  "commit_messages": [
-    "Update file .gitlab-ci.yml",
-    "baselineecoci"
-  ],
-  "changed_files": [
-    "src/test/java/com/example/tp4/StudentControllerTest.java"
-  ]
-}

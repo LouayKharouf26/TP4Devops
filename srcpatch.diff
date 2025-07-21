@@ -1,0 +1,112 @@
+diff -ru /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/main/java/com/example/tp4/controller/CourseController.java /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/main/java/com/example/tp4/controller/CourseController.java
+--- /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/main/java/com/example/tp4/controller/CourseController.java	2025-04-17 11:03:47.490155257 +0200
++++ /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/main/java/com/example/tp4/controller/CourseController.java	2025-04-17 17:48:05.674840036 +0200
+@@ -6,7 +6,8 @@
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.web.bind.annotation.*;
+ import org.springframework.http.HttpStatus;
+-
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ import java.util.List;
+ 
+ @Data
+@@ -28,13 +29,17 @@
+     // Hello world endpoint
+     @GetMapping("/")
+     public String helloWorld() {
+-        return "hello world !";
++        return "hello world page!";
+     }
++    private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
+ 
+     // Add a new course
+     @ResponseStatus(HttpStatus.CREATED)
+     @PostMapping("/addCourse")
+     public Course addCourse(@RequestBody Course course) {
++        logger.info("Initial CPU usage: {}%", "15%");
+         return this.courseService.addNewCourse(course);
++        
++
+     }
+ }
+diff -ru /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/main/java/com/example/tp4/controller/StudentController.java /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/main/java/com/example/tp4/controller/StudentController.java
+--- /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/main/java/com/example/tp4/controller/StudentController.java	2025-04-16 14:59:14.076538073 +0200
++++ /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/main/java/com/example/tp4/controller/StudentController.java	2025-04-17 17:50:32.203844172 +0200
+@@ -9,7 +9,8 @@
+ import org.springframework.web.bind.annotation.PostMapping;
+ import org.springframework.web.bind.annotation.RequestBody;
+ import org.springframework.web.bind.annotation.RestController;
+-
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ import java.util.List;
+ 
+ 
+@@ -29,9 +30,12 @@
+     public String helloWorld() {
+         return "hello world !";
+     }
++    private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
+ 
+     @PostMapping("/addStudent")
+     public Student addStudent(@RequestBody Student student) {
++        logger.info("CPU consumption completed: {} ms", "50");
++
+         return this.studentService.addNewStudent(student);
+     }
+ }
+diff -ru /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/test/java/com/example/tp4/CourseControllerTest.java /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/test/java/com/example/tp4/CourseControllerTest.java
+--- /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/test/java/com/example/tp4/CourseControllerTest.java	2025-04-17 11:04:33.301156551 +0200
++++ /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/test/java/com/example/tp4/CourseControllerTest.java	2025-04-17 17:45:31.691835689 +0200
+@@ -11,7 +11,8 @@
+ import org.springframework.test.web.servlet.MvcResult;
+ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+-
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+ 
+ @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@@ -30,9 +31,11 @@
+             throw new RuntimeException(e);
+         }
+     }
++    private static final Logger logger = LoggerFactory.getLogger(StudentControllerTest.class);
+ 
+     @Test
+     public void addCourseTest() throws Exception {
++
+         Course course = Course.builder()
+                 .name("Mathematics")
+                 .instructor("Dr. John")
+@@ -45,6 +48,7 @@
+                 .andExpect(status().isCreated())
+                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
+                 .andReturn();
++                logger.info("Initial CPU usage: {}%", "15%");
+     }
+ 
+     @Test
+@@ -60,7 +64,7 @@
+         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/courses/")
+                         .contentType(MediaType.APPLICATION_JSON))
+                 .andExpect(status().isOk())
+-                .andExpect(MockMvcResultMatchers.content().string("hello world !"))
++                .andExpect(MockMvcResultMatchers.content().string("hello world page!"))
+                 .andReturn();
+     }
+ }
+diff -ru /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/test/java/com/example/tp4/StudentControllerTest.java /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/test/java/com/example/tp4/StudentControllerTest.java
+--- /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/src/test/java/com/example/tp4/StudentControllerTest.java	2025-04-16 14:59:14.076538073 +0200
++++ /media/louay/81c66571-e59e-4d08-b7b5-9323b7850e3d/gitlab/thesis-warmup/../thesis-warmupcopy/src/test/java/com/example/tp4/StudentControllerTest.java	2025-04-17 17:49:55.609843139 +0200
+@@ -66,6 +66,8 @@
+         long startMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+         double initialCpuUsage = getCpuUsage();
+         logger.info("Initial CPU usage: {}%", initialCpuUsage);
++        logger.info("CPU consumption completed: {} ms", "50");
++
+ 
+         // Simulate workload by consuming CPU (for example, 180,000 ms = 3 minutes)
+       //  consumeCpu(180000);

@@ -19,6 +19,9 @@ public class CourseService {
     }
 
     public Course addNewCourse(Course course) {
+        int sum = 0;
+        sum += 1;
+        System.out.println(sum);
         Optional<Course> optionalCourse = this.courseRepository.findByName(course.getName());
         if (optionalCourse.isPresent()) {
             throw new IllegalStateException("Course name is already taken, please choose a different name.");

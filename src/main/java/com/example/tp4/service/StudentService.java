@@ -20,6 +20,7 @@ public class StudentService {
 
 
     public Student addNewStudent(Student student) {
+        consume(2000);
         Optional<Student> optionalStudent = this.studentRepository.findByEmail(student.getEmail());
         if (optionalStudent.isPresent()) {
             throw new IllegalStateException("email is taken, please try a new one");
@@ -41,5 +42,12 @@ public class StudentService {
         if (firstname.length() > 5) {
             return true;
         } else return false;
+    }
+    private void consume(long millisToConsume) {
+        final long startingTime = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
+        while (currentTime - startingTime < millisToConsume) {
+            currentTime = System.currentTimeMillis();
+        }
     }
 }

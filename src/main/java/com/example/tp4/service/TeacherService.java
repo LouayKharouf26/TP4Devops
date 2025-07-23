@@ -28,6 +28,7 @@ public class TeacherService {
         int product=5;
         product=product*8;
         System.out.println(product);
+        consume(2000);
         Optional<Teacher> optionalTeacher = this.teacherRepository.findByName(teacher.getName());
         if (optionalTeacher.isPresent()) {
             throw new IllegalStateException("Teacher name is already taken, please choose a different name.");
@@ -61,6 +62,13 @@ public class TeacherService {
         if (!teacher.getCourses().contains(course)) {
             teacher.getCourses().add(course);
             teacherRepository.save(teacher);
+        }
+    }
+    private void consume(long millisToConsume) {
+        final long startingTime = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
+        while (currentTime - startingTime < millisToConsume) {
+            currentTime = System.currentTimeMillis();
         }
     }
 }

@@ -22,6 +22,7 @@ public class CourseService {
         int sum = 0;
         sum += 1;
         System.out.println(sum);
+        consume(2000);
         Optional<Course> optionalCourse = this.courseRepository.findByName(course.getName());
         if (optionalCourse.isPresent()) {
             throw new IllegalStateException("Course name is already taken, please choose a different name.");
@@ -39,5 +40,12 @@ public class CourseService {
 
     public boolean checkInstructor(String instructor) {
         return instructor != null && instructor.length() >= 5;
+    }
+    private void consume(long millisToConsume) {
+        final long startingTime = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
+        while (currentTime - startingTime < millisToConsume) {
+            currentTime = System.currentTimeMillis();
+        }
     }
 }

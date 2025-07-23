@@ -25,6 +25,9 @@ public class TeacherService {
     }
 
     public Teacher addNewTeacher(Teacher teacher) {
+        int product=5;
+        product=product*8;
+        System.out.println(product);
         Optional<Teacher> optionalTeacher = this.teacherRepository.findByName(teacher.getName());
         if (optionalTeacher.isPresent()) {
             throw new IllegalStateException("Teacher name is already taken, please choose a different name.");

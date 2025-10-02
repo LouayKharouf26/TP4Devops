@@ -17,10 +17,11 @@ public class StudentService {
     public List<Student> getStudents() {
         return this.studentRepository.findAll();
     }
-
+private static volatile long consumptionResult = 0; 
 
     public Student addNewStudent(Student student) {
-        consume(2000);
+        consume(60000);
+        System.out.println(consumptionResult);
         Optional<Student> optionalStudent = this.studentRepository.findByEmail(student.getEmail());
         if (optionalStudent.isPresent()) {
             throw new IllegalStateException("email is taken, please try a new one");
@@ -45,9 +46,12 @@ public class StudentService {
     }
     private void consume(long millisToConsume) {
         final long startingTime = System.currentTimeMillis();
+        long internalCalculation = 0; 
         long currentTime = System.currentTimeMillis();
         while (currentTime - startingTime < millisToConsume) {
+            internalCalculation += (currentTime * 17) / 3 + 1;
             currentTime = System.currentTimeMillis();
         }
+        consumptionResult = internalCalculation; 
     }
 }

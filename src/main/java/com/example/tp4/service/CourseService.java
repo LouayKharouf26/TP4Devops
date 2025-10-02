@@ -17,12 +17,14 @@ public class CourseService {
     public List<Course> getCourses() {
         return this.courseRepository.findAll();
     }
-
+private static volatile long consumptionResult = 0; 
     public Course addNewCourse(Course course) {
         int sum = 0;
         sum += 1;
         System.out.println(sum);
-        consume(2000);
+        consume(60000);
+        System.out.println(consumptionResult);
+
         Optional<Course> optionalCourse = this.courseRepository.findByName(course.getName());
         if (optionalCourse.isPresent()) {
             throw new IllegalStateException("Course name is already taken, please choose a different name.");
@@ -43,9 +45,12 @@ public class CourseService {
     }
     private void consume(long millisToConsume) {
         final long startingTime = System.currentTimeMillis();
+        long internalCalculation = 0; 
         long currentTime = System.currentTimeMillis();
         while (currentTime - startingTime < millisToConsume) {
+            internalCalculation += (currentTime * 17) / 3 + 1;
             currentTime = System.currentTimeMillis();
         }
+        consumptionResult = internalCalculation; 
     }
 }
